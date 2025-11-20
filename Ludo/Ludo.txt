@@ -1,0 +1,139 @@
+classDiagram
+    %%Class Relationship Architecture
+    Game"1"*--"1"Board : uses
+    Game"1"o--"2..4"IPlayer : manages
+    Game"1"o--"n"Pawn : controls
+    Game"1"*--"1"Dice : uses
+
+    IPlayer"1"*--"4"Pawn : has
+    Player-->IPlayer : implements
+
+    Board"1"o--"*"Tile : mainTrack
+    Board"1"o--"*"Coordinates : positions
+    Tile"1"-->"1"Coordinates : position
+    Pawn"1"-->"1"Coordinates : position
+
+    %%Enumeration Class Relation
+    IPlayer..>Color
+    Pawn..>PawnState
+    Pawn..>Color
+    Tile..>Color
+    Tile..>TileType
+
+    %%CLASSES
+    class Game{
+        -_CurrentPlayerIndex : int
+        -Dictionary<.Pawn, Tile> _pawnPositions
+        +Dictionary<.Color, Tile[]> PlayerPaths
+        +GetPlayerPath(Color color) : Tile[] PlayerPath
+
+        +GameState State
+        +List<.Player> Players
+        +Board Board
+        +Dice Dice
+        +Player CurrentPlayer
+        +int CurrentPlayerIndex
+
+        +AddPlayer(Color color) : void
+        +Start() : void
+        +Reset() : void
+        +End() : void
+        +RollDice(Dice dice) : int
+        +NextTurn() : void
+        +GetCurrentPlayer() : Player
+        +MovePawn(Player player, Pawn pawn, int steps) : bool
+        +GetMovablePawns(Player player, int roll) : List<Pawn>
+        +CheckWinCondition() : bool
+
+        -InitializePawnPositions() : void
+        -UpdatePawnPosition(Pawn pawn, Tile destination) : void
+        -HandleCapture(Pawn capturedPawn, Pawn capturingPawn) : void
+        
+        +PlacePawn(Pawn pawn) : void
+        +RemovePawn(Pawn pawn) : void
+
+        +Action<.Player> PlayerWon : message event
+        +Action<.Pawn, Tile,Tile> PawnMoved : message event
+        +Action<.Pawn, Pawn> PawnCaptured : message event
+        
+        +CanMove(Game game, Pawn pawn, int roll) : bool
+        +GetDestination(Game game, Pawn pawn, int roll) : Tile
+        +IsCapture(Tile destination, Pawn movingPawn) : bool
+        +HasPlayerWon(Player player) : bool
+        +CanStartPawn(Pawn pawn, int roll) : bool
+        +IsExtraTurn(Pawn pawn, int roll) : bool
+        +CanEnterHome(Pawn pawn, int roll) : bool
+        +GetMovablePawns(Game game, Player player, int roll) : List<Pawn>
+    }
+
+    class Dice{
+        +int Sides
+    }
+
+    class Pawn{
+        +Coordiate Position : readonly
+        +PawnState State : readonly
+    }
+
+    class Tile{
+        +Coordinates Position
+        +TileType Type
+        +List<.Pawn> Pawns
+    }
+
+    %%INTERFACES
+    class Board{
+        +Tile[,] Grid
+    }
+
+    class IPlayer{
+        <<Interface>>
+        +Color Color
+        +List<.Pawn> Pawns
+
+        +AllPawnsFinished() : bool
+        +GetActivePawn() : List<Pawn>
+        +GetFinishedPawnCount() : int
+    }
+
+    class Player{
+        +Color Color : readonly
+        +List<.Pawn> Pawns
+
+        +AllPawnsFinished() : bool
+        +GetActivePawn() : List<Pawn>
+        +GetFinishedPawnCount() : int
+    }
+
+    class Color{
+        <<enumeration>>
+        Red
+        Blue
+        Green
+        Yellow
+    }
+
+    class PawnState{
+        <<Enumeration>>
+        StartPoint
+        Safe
+        Vulnerable
+        Fishished
+    }
+
+    class TileType{
+        <<enumeration>>
+        Start
+        Normal
+        Safe
+        HomeEntry
+        Home
+    }
+
+    class Coordinates{
+        <<struct>>
+        +int X
+        +int Y
+
+        +Coordinates(int x, int y)
+    }
