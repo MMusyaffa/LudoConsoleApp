@@ -2,13 +2,31 @@ namespace LudoGames.Types.Coordinates
 {
     public struct Coordinate
     {
-        public int Row { get; set; }
-        public int Col { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
 
-        public Coordinate(int row, int col)
+        public Coordinate(int x, int y)
         {
-            Row = row;
-            Col = col;
+            X = x;
+            Y = y;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is not Coordinate other)
+                return false;
+
+            return this.X == other.X && this.Y == other.Y;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(X, Y);
+        }
+
+        public override string ToString()
+        {
+            return $"({X}, {Y})";
         }
     }
 }

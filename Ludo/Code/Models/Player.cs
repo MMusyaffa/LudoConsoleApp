@@ -1,19 +1,14 @@
 using LudoGames.Enums.Colors;
+using LudoGames.Interface.Players;
 
 namespace LudoGames.Models.Player
 {
-    interface IPlayer
-    {
-        string Name { get; }
-        ColorEnum ColorEnum { get; }
-    }
-
     class Player : IPlayer
     {
         public string Name { get; }
-        public ColorEnum ColorEnum { get; }
+        public ColorsEnum ColorEnum { get; }
 
-        public Player(string name, ColorEnum color)
+        public Player(string name, ColorsEnum color)
         {
             Name = name;
             ColorEnum = color;

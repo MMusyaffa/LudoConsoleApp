@@ -1,7 +1,7 @@
-namespace LudoGames.Enums.PawnStatus
+namespace LudoGames.Enums.PawnStates
 {
     [Flags]
-    public enum PawnStatusEnum
+    public enum PawnStatesEnum
     {
         AtHome,
         OnBoard,
