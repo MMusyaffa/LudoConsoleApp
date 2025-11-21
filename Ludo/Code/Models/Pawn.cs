@@ -6,7 +6,7 @@ namespace LudoGames.Models.Pawns
 {
     class Pawn : IPawn
     {
-        public Coordinate Coordinate { get; }
+        public Coordinate Coordinate { get; set; }
         public PawnStatesEnum PawnStatesEnum { get; }
         public int PositionIndex { get; set; }
 

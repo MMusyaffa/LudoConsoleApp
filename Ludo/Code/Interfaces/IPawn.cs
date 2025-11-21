@@ -5,7 +5,7 @@ namespace LudoGames.Interface.Pawns
 {
     interface IPawn
     {
-        Coordinate Coordinate { get; }
+        Coordinate Coordinate { get; set; }
         PawnStatesEnum PawnStatesEnum { get; }
         int PositionIndex { get; set; }
     }

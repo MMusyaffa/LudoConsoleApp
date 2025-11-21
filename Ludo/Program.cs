@@ -1,33 +1,32 @@
-﻿using LudoGames.Enums.Colors;
-using LudoGames.Enums.PawnStates;
+﻿using LudoGames.Interface.Pawns;
 using LudoGames.Games.GameController;
-using LudoGames.Interface.Dices;
-using LudoGames.Interface.Pawns;
-using LudoGames.Interface.Players;
-using LudoGames.Models.Dices;
-using LudoGames.Models.Pawns;
-using LudoGames.Models.Player;
-using LudoGames.Types.Coordinates;
 
-// IDice dice = new Dice(6);
-// IPawn pawn = new Pawn(new Coordinate(0, 0), PawnStatesEnum.OnBoard);
+GameController game = new GameController();
 
-IPlayer player = new Player("Affa", ColorsEnum.Blue);
-List<IPawn> pawnsPlayer1 = new List<IPawn>();
-GameController game = new GameController(player, pawnsPlayer1);
-
-game.Setup();
-
-var path = game.PathA;
-Coordinate[] PawnCoordinate = [ path[0], path[0], path[0], path[0] ];
-Console.WriteLine($"Spawn Pawn: {string.Join(", ", PawnCoordinate)}");
-
-foreach (var spawn in PawnCoordinate)
+while (true)
 {
-    pawnsPlayer1.Add(new Pawn(spawn, PawnStatesEnum.OnBoard));
+    Console.Write("Tambah pemain? (y/n): ");
+    string input = Console.ReadLine()!;
+
+    if (input.ToLower() != "y") { break; }
+
+    game.AddPlayer();
 }
 
-Console.WriteLine($"Name: {player.Name}, Pawn: {string.Join(", ", pawnsPlayer1)}");
+Console.WriteLine("Daftar pemain:");
+foreach (var player in game.Players)
+{
+    Console.WriteLine($"Name: {player.Name}: {player.ColorEnum}, Pawn: {string.Join(", ", game.PlayerPawns[player])}");
+}
 
 int num = game.RollDice();
-game.MovePawn(pawnsPlayer1[0], num);
+IPawn pawn = game.SelectPawn(game.Players[0]);
+game.MovePawn(game.Players[0], pawn, num);
+
+int num1 = game.RollDice();
+IPawn pawn1 = game.SelectPawn(game.Players[0]);
+game.MovePawn(game.Players[0], pawn1, num1);
+
+int num2 = game.RollDice();
+IPawn pawn2 = game.SelectPawn(game.Players[0]);
+game.MovePawn(game.Players[0], pawn2, num2);

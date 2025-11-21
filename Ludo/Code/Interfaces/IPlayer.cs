@@ -5,6 +5,6 @@ namespace LudoGames.Interface.Players
     interface IPlayer
     {
         string Name { get; }
-        ColorsEnum ColorEnum { get; }
+        ColorsEnum ColorEnum { get; set; }
     }
 }
