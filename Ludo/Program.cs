@@ -1,16 +1,29 @@
 ﻿using LudoGames.Interface.Pawns;
 using LudoGames.Games.GameController;
+using LudoGames.Interface.Players;
 
 GameController game = new GameController();
 
 while (true)
 {
-    Console.Write("Tambah pemain? (y/n): ");
-    string input = Console.ReadLine()!;
+    if (game.Players.Count < 4)
+    {
+        Console.Write("Tambah pemain? (y/n): ");
+        string input = Console.ReadLine()!;
 
-    if (input.ToLower() != "y") { break; }
+        if (input.ToLower() == "y") { game.AddPlayer(); }
+        else
+        {
+            if (game.Players.Count < 2)
+            {
+                Console.WriteLine("Minimal harus ada 2 pemain untuk memulai game!");
+                continue;
+            }
+            break;
+        }
 
-    game.AddPlayer();
+    }
+    else { Console.WriteLine("Player sudah penuh"); break;}
 }
 
 Console.WriteLine("Daftar pemain:");
@@ -19,14 +32,20 @@ foreach (var player in game.Players)
     Console.WriteLine($"Name: {player.Name}: {player.ColorEnum}, Pawn: {string.Join(", ", game.PlayerPawns[player])}");
 }
 
-int num = game.RollDice();
-IPawn pawn = game.SelectPawn(game.Players[0]);
-game.MovePawn(game.Players[0], pawn, num);
+game.AssignFirstPlayerTurn();
 
-int num1 = game.RollDice();
-IPawn pawn1 = game.SelectPawn(game.Players[0]);
-game.MovePawn(game.Players[0], pawn1, num1);
+while(true)
+{
+    IPlayer currentPlayer = game.GetCurrentPlayerTurn();
+    int num = game.RollDice();
 
-int num2 = game.RollDice();
-IPawn pawn2 = game.SelectPawn(game.Players[0]);
-game.MovePawn(game.Players[0], pawn2, num2);
+    if (!game.CanPawnMove(currentPlayer, num))
+    {
+        game.NextTurn();
+        continue;
+    }
+
+    IPawn pawn = game.SelectPawn(currentPlayer, num);
+    game.MovePawn(currentPlayer, pawn, num);
+    game.NextTurn();
+}

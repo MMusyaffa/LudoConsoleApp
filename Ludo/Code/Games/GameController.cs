@@ -19,14 +19,15 @@ namespace LudoGames.Games.GameController
         public Dictionary<IPlayer, int> PlayerScores { get; private set; }
         public Dictionary<IPlayer, List<IPawn>> PlayerPawns { get; private set; }
         public Dictionary<IPlayer, List<Coordinate>> PlayerPaths { get; private set; }
-        private ITile[,] _tiles;
-        private IDice _dice;
         public List<Coordinate> PathA { get; private set; }
         public List<Coordinate> PathB { get; private set; }
         public List<Coordinate> PathC { get; private set; }
         public List<Coordinate> PathD { get; private set; }
-        private readonly Random _random = new();
+        private IPlayer _currentPlayerTurn;
+        private ITile[,] _tiles;
+        private IDice _dice;
         private int _diceNumber = 0;
+        private readonly Random _random = new();
 
         public GameController()
         {
@@ -217,27 +218,28 @@ namespace LudoGames.Games.GameController
         {
             while (true)
             {
-                Console.WriteLine("Pilih warna untuk player " + player.Name + ":");
-                Console.WriteLine("0. Red");
-                Console.WriteLine("1. Blue");
-                Console.WriteLine("2. Green");
-                Console.WriteLine("3. Yellow");
+                Console.WriteLine("Pilihan warna");
+                Console.WriteLine("1. Red");
+                Console.WriteLine("2. Blue");
+                Console.WriteLine("3. Green");
+                Console.WriteLine("4. Yellow");
+                Console.Write($"Pilih warna untuk player {player.Name}: ");
 
-                if (int.TryParse(Console.ReadLine(), out int selected) &&
-                    Enum.IsDefined(typeof(ColorsEnum), selected))
+                if (int.TryParse(Console.ReadLine(), out int selected))
                 {
-                    var chosenColor = (ColorsEnum)selected;
+                    selected -= 1;
+                    if (Enum.IsDefined(typeof(ColorsEnum), selected))
+                        {
+                            var chosenColor = (ColorsEnum)selected;
+                            if (!IsColorTaken(chosenColor)) 
+                            {
+                                player.ColorEnum = chosenColor;
+                                Console.WriteLine($"player: {player.Name}, color: {player.ColorEnum}");
 
-                    if (!IsColorTaken(chosenColor)) 
-                    {
-                        player.ColorEnum = chosenColor;
-                        Console.WriteLine($"player: {player.Name}, color: {player.ColorEnum}");
-
-                        return chosenColor; 
-                    }
-                    else { Console.WriteLine("Warna sudah dipilih pemain lain! Pilih warna lain."); }
-                }
-                else { Console.WriteLine("Input tidak valid! Pilih angka 0-3."); }
+                                return chosenColor; 
+                            } else { Console.WriteLine("Warna sudah dipilih pemain lain! Pilih warna lain."); }
+                        } else { Console.WriteLine("Input tidak valid! Pilih angka 1-4."); }
+                } else { Console.WriteLine("Input tidak valid! Harus angka!"); }
             }
         }
 
@@ -267,41 +269,83 @@ namespace LudoGames.Games.GameController
             return pawns;
         }
 
-        public IPawn SelectPawn(IPlayer player)
+        public IPawn SelectPawn(IPlayer player, int diceResult)
         {
             var pawns = PlayerPawns[player];
-
-            Console.WriteLine($"{player.Name} - Pilih pawn untuk dijalankan");
 
             for (int i = 0; i < pawns.Count; i++)
             {
                 Console.WriteLine($"{i + 1}. Pawn {i + 1} - Posisi: {pawns[i].Coordinate}");
             }
 
-            int selectedPawn;
+            Console.Write($"{player.Name} - Pilih pawn untuk dijalankan: ");
 
             while(true)
             {
                 Console.Write("Masukan nomor pawn: ");
 
-                if (int.TryParse(Console.ReadLine(), out selectedPawn) &&
-                    selectedPawn >= 0 && selectedPawn < pawns.Count)
+                if (int.TryParse(Console.ReadLine(), out int selectedPawn))
                 {
-                    return pawns[selectedPawn];
+                    selectedPawn -= 1;
+                    if (selectedPawn >= 0 && selectedPawn < pawns.Count)
+                    {
+                        var pawn = pawns[selectedPawn];
+
+                        if(pawn.PawnStatesEnum == PawnStatesEnum.AtHome && diceResult != 6)
+                        {
+                            Console.WriteLine("Tidak bisa keluar home.");
+                            continue;
+                        }
+
+                        pawn.PawnStatesEnum = PawnStatesEnum.OnBoard;
+                        // return pawn;
+                        return pawns[selectedPawn];
+                    }
                 }
+                Console.WriteLine("Pilihan tidak valid! Coba lagi.");
             }
-            Console.WriteLine("Pilihan tidak valid! Coba lagi.");
         }
 
-        public void SwitchTurn(IPlayer player)
+        public void NextTurn()
         {
-            
+            int currentPlayerIndex = Players.IndexOf(_currentPlayerTurn);
+            _currentPlayerTurn = Players[(currentPlayerIndex + 1) % Players.Count];
+
+            Console.WriteLine($"Giliran pemain {_currentPlayerTurn.Name} untuk jalan");
         }
 
         public void AssignFirstPlayerTurn()
         {
-            
+            if (Players.Count == 0) { Console.WriteLine("Belum ada pemain");}
+
+            int playerTurnOrder = _random.Next(Players.Count);
+            _currentPlayerTurn = Players[playerTurnOrder];
+
+            Console.WriteLine($"Giliran pemain {_currentPlayerTurn.Name} untuk jalan");
         }
 
+        public IPlayer GetCurrentPlayerTurn()
+        {
+            return _currentPlayerTurn;
+        }
+
+        public bool AllPawnsAtHome(IPlayer player)
+        {
+            return PlayerPawns[player].All(p => p.PawnStatesEnum == PawnStatesEnum.AtHome);
+        }
+
+        public bool CanPawnMove(IPlayer player, int diceResult)
+        {
+            bool allPawnsHome = AllPawnsAtHome(player);
+            
+            if (allPawnsHome && diceResult != 6)
+            {
+                Console.WriteLine($"Player {player.Name} tidak bisa jalan, skip");
+                return false;
+            }
+
+            return true;
+        }
+        
     }
 }
