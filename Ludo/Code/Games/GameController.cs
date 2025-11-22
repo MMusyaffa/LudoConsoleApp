@@ -23,7 +23,7 @@ namespace LudoGames.Games.GameController
         public List<Coordinate> PathB { get; private set; }
         public List<Coordinate> PathC { get; private set; }
         public List<Coordinate> PathD { get; private set; }
-        private IPlayer _currentPlayerTurn;
+        private IPlayer? _currentPlayerTurn = null;
         private ITile[,] _tiles;
         private IDice _dice;
         private int _diceNumber = 0;
@@ -155,25 +155,42 @@ namespace LudoGames.Games.GameController
                 return 0;
             }
             _diceNumber = _random.Next(1, _dice.Sides + 1);
+            // _diceNumber = 6;
 
             Console.Write($"Dice Roll: {_diceNumber}\n");
             return _diceNumber;
         }
 
-        public void MovePawn(IPlayer player, IPawn pawn, int step)
+        public bool MovePawn(IPlayer player, IPawn pawn, int rollDice)
         {
             var path = PlayerPaths[player];
-            int newIndex = pawn.PositionIndex + step;
+            int newIndex = pawn.PositionIndex + rollDice;
+            bool pawnOnFinalPath = CheckPawnOnFinalPath(player, pawn);
 
             Coordinate currentCoordinate = pawn.Coordinate;
+
+            if (pawnOnFinalPath)
+            {
+                int lastPath = path.Count - 1 - pawn.PositionIndex;
+                if (rollDice > lastPath) 
+                { 
+                    Console.WriteLine($"Dadu tidak boleh lebih dari {lastPath}"); 
+                    return false;
+                }
+
+                if (newIndex == lastPath)
+                {
+                    pawn.PawnStatesEnum = PawnStatesEnum.OnFinishPath; // atau PawnStatesEnum.Finished tergantung definisi kamu
+                    Console.WriteLine($"Pawn mencapai akhir untuk player {player.Name}!");
+                    return false;
+                }
+            }
+            
             Coordinate newCoordinate = path[newIndex];
-
-            // if (newIndex >= PathA.Count)
-
             UpdatePawnPosition(pawn, newCoordinate, newIndex);
 
-            Console.Write($"Bidak maju sebanyak: {step}\n");
-            Console.WriteLine($"Dari block {currentCoordinate} ke block {newCoordinate}");
+            Console.WriteLine($"Bidak maju sebanyak: {rollDice}, Dari block {currentCoordinate} ke block {newCoordinate}");
+            return true;
         }
 
         public void UpdatePawnPosition(IPawn pawn, Coordinate coordinate, int index)
@@ -199,6 +216,8 @@ namespace LudoGames.Games.GameController
             PlayerScores[player] = 0;
             PlayerPawns[player] = pawns;
             PlayerPaths[player] = playerPath;
+
+            if (_currentPlayerTurn == null) { _currentPlayerTurn = player; }
 
             return true;
         }
@@ -308,7 +327,7 @@ namespace LudoGames.Games.GameController
 
         public void NextTurn()
         {
-            int currentPlayerIndex = Players.IndexOf(_currentPlayerTurn);
+            int currentPlayerIndex = Players.IndexOf(_currentPlayerTurn!);
             _currentPlayerTurn = Players[(currentPlayerIndex + 1) % Players.Count];
 
             Console.WriteLine($"Giliran pemain {_currentPlayerTurn.Name} untuk jalan");
@@ -326,10 +345,10 @@ namespace LudoGames.Games.GameController
 
         public IPlayer GetCurrentPlayerTurn()
         {
-            return _currentPlayerTurn;
+            return _currentPlayerTurn!;
         }
 
-        public bool AllPawnsAtHome(IPlayer player)
+        private bool AllPawnsAtHome(IPlayer player)
         {
             return PlayerPawns[player].All(p => p.PawnStatesEnum == PawnStatesEnum.AtHome);
         }
@@ -347,5 +366,19 @@ namespace LudoGames.Games.GameController
             return true;
         }
         
+        private bool CheckPawnOnFinalPath(IPlayer player, IPawn pawn)
+        {
+            var path = PlayerPaths[player];
+            int lastSixPath = path.Count - 6;
+
+            if (pawn.PositionIndex >= lastSixPath && pawn.PositionIndex < path.Count)
+            {
+                Console.WriteLine($"Player {player.Name}, pawn kamu masuk ke final path");
+                pawn.PawnStatesEnum = PawnStatesEnum.OnFinishPath;
+                return true;
+            }
+            return false;
+        }
+
     }
 }

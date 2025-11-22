@@ -1,6 +1,7 @@
 ﻿using LudoGames.Interface.Pawns;
 using LudoGames.Games.GameController;
 using LudoGames.Interface.Players;
+using LudoGames.Enums.PawnStates;
 
 GameController game = new GameController();
 
@@ -43,9 +44,22 @@ while(true)
     {
         game.NextTurn();
         continue;
-    }
+    }   
 
     IPawn pawn = game.SelectPawn(currentPlayer, num);
-    game.MovePawn(currentPlayer, pawn, num);
-    game.NextTurn();
+
+    if (pawn.PawnStatesEnum == PawnStatesEnum.AtHome)
+    {
+        if(num == 6)
+        {
+            Console.WriteLine("Pawn keluar dari home");
+            game.RollDice(); 
+        }
+        else{ game.NextTurn(); }
+    } 
+    else 
+    { 
+        game.MovePawn(currentPlayer, pawn, num);
+        game.NextTurn();
+    }
 }
