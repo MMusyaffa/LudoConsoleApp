@@ -53,13 +53,21 @@ while(true)
         if(num == 6)
         {
             Console.WriteLine("Pawn keluar dari home");
-            game.RollDice(); 
+            game.UpdatePawnState(pawn);
+            // game.RollDice();
         }
         else{ game.NextTurn(); }
     } 
     else 
-    { 
-        game.MovePawn(currentPlayer, pawn, num);
-        game.NextTurn();
+    {
+        if (num == 6)
+        {
+            game.MovePawn(currentPlayer, pawn, num);
+        }
+        else
+        {
+            game.MovePawn(currentPlayer, pawn, num);
+            game.NextTurn();
+        }
     }
 }

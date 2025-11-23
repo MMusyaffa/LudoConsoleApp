@@ -171,23 +171,25 @@ namespace LudoGames.Games.GameController
 
             if (pawnOnFinalPath)
             {
-                int lastPath = path.Count - 1 - pawn.PositionIndex;
-                if (rollDice > lastPath) 
-                { 
-                    Console.WriteLine($"Dadu tidak boleh lebih dari {lastPath}"); 
-                    return false;
-                }
+                int lastpath = path.Count - 1 - pawn.PositionIndex;
 
-                if (newIndex == lastPath)
-                {
-                    pawn.PawnStatesEnum = PawnStatesEnum.OnFinishPath; // atau PawnStatesEnum.Finished tergantung definisi kamu
-                    Console.WriteLine($"Pawn mencapai akhir untuk player {player.Name}!");
+                if (rollDice > lastpath) 
+                { 
+                    Console.WriteLine($"Dadu tidak boleh lebih dari {lastpath}"); 
                     return false;
                 }
             }
             
             Coordinate newCoordinate = path[newIndex];
             UpdatePawnPosition(pawn, newCoordinate, newIndex);
+
+            int lastPath = path.Count - 1 - pawn.PositionIndex;
+            if (lastPath == 0)
+            {
+                pawn.PawnStatesEnum = PawnStatesEnum.Finished;
+                Console.WriteLine($"Pawn mencapai akhir untuk player {player.Name}!");
+                return false;
+            }
 
             Console.WriteLine($"Bidak maju sebanyak: {rollDice}, Dari block {currentCoordinate} ke block {newCoordinate}");
             return true;
@@ -315,9 +317,12 @@ namespace LudoGames.Games.GameController
                             Console.WriteLine("Tidak bisa keluar home.");
                             continue;
                         }
+                        else if(pawn.PawnStatesEnum == PawnStatesEnum.Finished)
+                        {
+                            Console.WriteLine("Sudah finish, pilih pawn lain.");
+                            continue;
+                        }
 
-                        pawn.PawnStatesEnum = PawnStatesEnum.OnBoard;
-                        // return pawn;
                         return pawns[selectedPawn];
                     }
                 }
@@ -356,11 +361,27 @@ namespace LudoGames.Games.GameController
         public bool CanPawnMove(IPlayer player, int diceResult)
         {
             bool allPawnsHome = AllPawnsAtHome(player);
+            bool isAnyPawnOnBoard = AnyPawnOnBoard(player);
+            bool isAnyPawnFinsih = AnyPawnIsFinish(player);
             
-            if (allPawnsHome && diceResult != 6)
+            if (allPawnsHome)
             {
-                Console.WriteLine($"Player {player.Name} tidak bisa jalan, skip");
-                return false;
+                if (diceResult != 6)
+                {
+                    Console.WriteLine($"Player {player.Name} tidak bisa jalan, skip");
+                    return false;
+                }
+                else return true;
+            }
+
+            if (isAnyPawnFinsih && !isAnyPawnOnBoard)
+            {
+                if (diceResult != 6)
+                {
+                    Console.WriteLine($"Player {player.Name} tidak bisa jalan karena ada pawn finish dan masih di home, skip");
+                    return false;
+                }
+                else return true;
             }
 
             return true;
@@ -380,5 +401,22 @@ namespace LudoGames.Games.GameController
             return false;
         }
 
+        public void UpdatePawnState(IPawn pawn)
+        {
+            if (pawn.PawnStatesEnum == PawnStatesEnum.AtHome)
+            {
+                pawn.PawnStatesEnum = PawnStatesEnum.OnBoard;
+            }
+        }
+
+        public bool AnyPawnIsFinish(IPlayer player)
+        {
+            return PlayerPawns[player].Any(p => p.PawnStatesEnum == PawnStatesEnum.Finished);
+        }
+
+        private bool AnyPawnOnBoard(IPlayer player)
+        {
+            return PlayerPawns[player].Any(p => p.PawnStatesEnum == PawnStatesEnum.OnBoard);
+        }
     }
 }
