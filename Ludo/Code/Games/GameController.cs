@@ -146,19 +146,23 @@ namespace LudoGames.Games.GameController
 
         public int RollDice()
         {
-            Console.Write("Lempar dadu? (y): ");
-            string input = Console.ReadLine()!;
+            while(true)
+            {
+                Console.Write("Lempar dadu? (y): ");
+                string input = Console.ReadLine()!;
 
-            if (input?.ToLower() != "y") 
-            { 
-                Console.WriteLine("Tidak lempar input salah");
-                return 0;
+                if (input?.ToLower() != "y") 
+                { 
+                    Console.WriteLine("Masukan y");
+                    continue;
+                }
+
+                _diceNumber = _random.Next(1, _dice.Sides + 1);
+                // _diceNumber = 6;
+
+                Console.Write($"Dice Roll: {_diceNumber}\n");
+                return _diceNumber;
             }
-            _diceNumber = _random.Next(1, _dice.Sides + 1);
-            // _diceNumber = 6;
-
-            Console.Write($"Dice Roll: {_diceNumber}\n");
-            return _diceNumber;
         }
 
         public bool MovePawn(IPlayer player, IPawn pawn, int rollDice)

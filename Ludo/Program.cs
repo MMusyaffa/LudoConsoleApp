@@ -60,14 +60,8 @@ while(true)
     } 
     else 
     {
-        if (num == 6)
-        {
-            game.MovePawn(currentPlayer, pawn, num);
-        }
-        else
-        {
-            game.MovePawn(currentPlayer, pawn, num);
-            game.NextTurn();
-        }
+        game.MovePawn(currentPlayer, pawn, num);
+        
+        if (num != 6) { game.NextTurn(); }
     }
 }
